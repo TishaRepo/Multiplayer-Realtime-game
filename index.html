@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>SOFT LAB GAME</h1>
+    <button id="b1">NEW GAME</button>
+    <button id="b2">JOIN GAME</button>
+    <button id="b3">START GAME</button>
+
+
+    <input type='text' id='t1'>
+    <div id='players'></div>
+    <div id='board'></div>
+
+    <canvas></canvas>
+    <script>
+        let url = "ws://" + location.hostname + ":9090";
+        let ws = new WebSocket(url)
+
+        const createbutton = document.getElementById("b1");
+        const joinbutton = document.getElementById("b2");
+        const writejoin = document.getElementById("t1");
+        const startgame = document.getElementById("b3");
+
+        const players = document.getElementById("players");
+        const board = document.getElementById("board");
+
+        //global vars
+        var patternFromServer = [];
+        var isReverse = true;
+
+        //start the game
+
+        startgame.addEventListener("click", e => {
+            const sendtoserver = { "method": "start" }
+            ws.send(JSON.stringify(sendtoserver));
+        })
+
+        // i wanna join the game
+        joinbutton.addEventListener("click", e => {
+
+            if (gameid === null)
+                gameid = t1.value;
+
+            const sendtoserver = {
+                "method": "join",
+                "cid": cid,
+                "gameid": gameid
+            }
+
+            ws.send(JSON.stringify(sendtoserver));
+
+        })
+
+
+        // i wanna create the game
+        createbutton.addEventListener("click", e => {
+
+            const sendtoserver = {
+                "method": "create",
+                "cid": cid
+            }
+
+            ws.send(JSON.stringify(sendtoserver))
+        })
+        let cid = null;
+        let gameid = null;
+
+
+
+
+        // responses sent by server
+        ws.onmessage = message => {
+            const receivedfromserver = JSON.parse(message.data);
+
+
+
+            if (receivedfromserver.method === "connect") {
+                cid = receivedfromserver.cid;
+                console.log("Id for client is " + cid)
+            }
+
+
+
+            if (receivedfromserver.method === "create") {
+
+                gameid = receivedfromserver.game.id;
+                console.log(" game successfully created with id " + receivedfromserver.game.id + " with " + receivedfromserver.game.balls + " balls")
+            }
+
+
+
+            if (receivedfromserver.method === "patternupdate") {
+
+                
+                const intRemove = receivedfromserver.removeId;
+                const pattern = receivedfromserver.pattern;
+                isReverse = receivedfromserver.isReverse;
+               
+                patternFromServer = pattern;
+
+                for (let i = 0; i < pattern.length; i++) {
+                    const ballObject = document.getElementById("ball" + pattern[i]);
+
+                    ballObject.style.backgroundColor = "Yellow";
+                    ballObject.tag = i + 1;
+                }
+
+                if (intRemove > 0) {
+                    const ballObject = document.getElementById("ball" + intRemove);
+                    ballObject.style.backgroundColor = "#F0F0F0";
+                }
+
+
+            }
+
+
+            if (receivedfromserver.method === "join") {
+                const game = receivedfromserver.game;
+
+                while (players.firstChild)
+                    players.removeChild(players.firstChild)
+
+                game.clientdict.forEach(c => {
+
+                    const d = document.createElement("div");
+                    d.style.width = "200px";
+                    d.style.background = c.color
+                    d.textContent = c.cid;
+                    players.appendChild(d);
+
+
+                })
+
+
+                while (board.firstChild)
+                    board.removeChild(board.firstChild)
+
+                for (let i = 0; i < game.balls; i++) {
+
+                    const b = document.createElement("button");
+                    b.id = "ball" + (i + 1);
+                    b.tag = i + 1
+                    b.textContent = i + 1
+                    b.style.width = "150px"
+                    b.style.height = "150px"
+                    b.addEventListener("click", e => {
+
+                        let buttonNumber = null;
+                        let isIdPresent = false;
+
+
+                        for (let id of patternFromServer) {
+                            if (e.target.id === ("ball" + id)) {
+                                isIdPresent = true;
+                                buttonNumber = id;
+                                break;
+                            }
+                        }
+
+
+                        for (let id of patternFromServer)
+                        {  
+                            let condition = isReverse?id>buttonNumber:id<buttonNumber;
+                           if(condition)
+                           {
+                            isIdPresent=false;
+                            break;
+                           }
+                        }
+
+                        if (isIdPresent === false) return;
+
+                        const send = {
+                            "method": "onWallBreak",
+                            "cid": cid,
+                            "gameid": gameid,
+                            "ballId": b.tag,
+                            "IsIdPresent": isIdPresent,
+                            "buttonNumber": buttonNumber
+
+                        }
+                        ws.send(JSON.stringify(send))
+                    })
+                    board.appendChild(b);
+                }
+
+
+
+
+            }
+
+            if (receivedfromserver.method === "eplayers") {
+                alert("Minimum TWO Players Required");
+            }
+
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
