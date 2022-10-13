@@ -8,19 +8,38 @@
     <title>Document</title>
 </head>
 
-<body>
-    <h1>SOFT LAB GAME</h1>
-    <button id="b1">NEW GAME</button>
-    <button id="b2">JOIN GAME</button>
-    <button id="b3">START GAME</button>
+<body style="background-image: url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrn1SYQPhI8OyDCC-J6y-pF-PeWxils9BEww&usqp=CAUhttps://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUf-NY4XIbiir-9R7LKthhh3ZCvtGvmWRA_g&usqp=CAU)">
+    
+    <center><i><h1 style="color: rgb(55, 255, 0);font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif">FAST</h1></i></center>
+
+      <form>
+
+        <label for="player" style="margin-top: 5px;margin-bottom: 5px;margin-left: 5px;margin-right: 5px;color: lightblue;">Enter Name:</label><br>
+        <input type="text" id="name" name="name"style="margin-top: 5px;margin-bottom: 5px;margin-left: 5px;margin-right: 5px"><br>
+        
+        
+       
+      </form>
+
+    
+    <button id="b1" style="margin-top: 10px;margin-bottom: 5px;margin-left: 5px;margin-right: 8px">NEW GAME</button>
+    <h2> <span id="g-id" style="color: white;"></span></h2>
+    <button id="b2" style="margin-top: 10px;margin-bottom: 5px;margin-left: 5px;margin-right: 8px">JOIN GAME</button>
+    <button id="b3" style="margin-top: 10px;margin-bottom: 5px;margin-left: 5px;margin-right: 8px">START GAME</button>
 
 
-    <input type='text' id='t1'>
-    <div id='players'></div>
-    <div id='board'></div>
+    <input type='text' id='t1' placeholder="Enter Game Id .....">
+    
+    <div id='players' style="margin-top: 10px;margin-bottom: 10px"></div>
+    <div id="scorelabel" style="margin-top: 10px;margin-bottom: 10px"></div>
+    <label id="timerlabel" style="margin-top: 10px;margin-bottom: 10px"></label>
+    <div id='board'style="margin: top 10px"></div>
+    
 
-    <canvas></canvas>
+    
+    
     <script>
+        
         let url = "ws://" + location.hostname + ":9090";
         let ws = new WebSocket(url)
 
@@ -33,26 +52,34 @@
         const board = document.getElementById("board");
 
         //global vars
+
         var patternFromServer = [];
         var isReverse = true;
+        let gameIdGlobal = 0;
+
 
         //start the game
 
         startgame.addEventListener("click", e => {
-            const sendtoserver = { "method": "start" }
-            ws.send(JSON.stringify(sendtoserver));
+            
+            
+            {const sendtoserver = { "method": "start" ,"gameIdGlobal":gameIdGlobal}
+            ws.send(JSON.stringify(sendtoserver));}
         })
+        
 
         // i wanna join the game
-        joinbutton.addEventListener("click", e => {
 
+        joinbutton.addEventListener("click", e => {
+            var name = document.getElementById("name").value;
             if (gameid === null)
                 gameid = t1.value;
 
             const sendtoserver = {
                 "method": "join",
                 "cid": cid,
-                "gameid": gameid
+                "gameid": gameid,
+                "playerName":name
             }
 
             ws.send(JSON.stringify(sendtoserver));
@@ -92,21 +119,31 @@
             if (receivedfromserver.method === "create") {
 
                 gameid = receivedfromserver.game.id;
-                console.log(" game successfully created with id " + receivedfromserver.game.id + " with " + receivedfromserver.game.balls + " balls")
+                gameIdGlobal=gameid;
+                console.log(" game successfully created with id " + gameid + " with " + receivedfromserver.game.balls + " balls")
+                document.getElementById("g-id").innerHTML= " Your Game id is : " + gameid;
             }
+
+            
 
 
 
             if (receivedfromserver.method === "patternupdate") {
 
-                
+               
+                const ScoreInfo=receivedfromserver.ScoreInfo;
+                 
                 const intRemove = receivedfromserver.removeId;
                 const pattern = receivedfromserver.pattern;
                 isReverse = receivedfromserver.isReverse;
                
                 patternFromServer = pattern;
+                  
+                CreateLabel(ScoreInfo);
 
-                for (let i = 0; i < pattern.length; i++) {
+                for (let i = 0; i < pattern.length; i++) 
+                {
+                      
                     const ballObject = document.getElementById("ball" + pattern[i]);
 
                     ballObject.style.backgroundColor = "Yellow";
@@ -116,26 +153,38 @@
                 if (intRemove > 0) {
                     const ballObject = document.getElementById("ball" + intRemove);
                     ballObject.style.backgroundColor = "#F0F0F0";
+                    
+
                 }
 
 
             }
+             if(receivedfromserver.method==="updateTimer")
+             { 
+               const second=receivedfromserver.second;
+               const d= document.getElementById("timerlabel");
+               d.innerText="  Remaining Time is "+ second +"s";
+               d.style.color="white"
 
+             }
 
             if (receivedfromserver.method === "join") {
                 const game = receivedfromserver.game;
-
+                var rule =" ASCENDING ";
                 while (players.firstChild)
                     players.removeChild(players.firstChild)
 
                 game.clientdict.forEach(c => {
 
                     const d = document.createElement("div");
-                    d.style.width = "200px";
-                    d.style.background = c.color
-                    d.textContent = c.cid;
+                    d.style.width = "300px";
+                    d.style.height ="40px";
+                    d.style.background = c.color;
+                    d.textContent = c.name +" ,  RULE : Press Buttons in " + rule +" order " ;
+                    d.style.margin = "10px";
+                    d.style.padding= "10px";
                     players.appendChild(d);
-
+                     rule=" DESCENDING "
 
                 })
 
@@ -151,6 +200,11 @@
                     b.textContent = i + 1
                     b.style.width = "150px"
                     b.style.height = "150px"
+                    b.style.borderRadius ="100px"
+                    b.style.marginLeft="4px"
+                    b.style.marginRight="4px"
+                    b.style.marginTop="7px"
+                    b.style.marginBottom="7px"
                     b.addEventListener("click", e => {
 
                         let buttonNumber = null;
@@ -186,6 +240,8 @@
                             "IsIdPresent": isIdPresent,
                             "buttonNumber": buttonNumber
 
+                            
+
                         }
                         ws.send(JSON.stringify(send))
                     })
@@ -197,15 +253,32 @@
 
             }
 
-            if (receivedfromserver.method === "eplayers") {
-                alert("Minimum TWO Players Required");
+            if (receivedfromserver.method === "minPlayers") {
+                alert(" Minimum TWO Players Required ! ");
+            }
+
+            if (receivedfromserver.method === "maxPlayers") {
+                alert(" ONlY Two Players Allowed !! ");
             }
 
 
 
         }
 
+ function CreateLabel(arrScoreInfo)
+ {  const v =document.getElementById("scorelabel");
 
+                while (v.firstChild)
+                   { v.removeChild(v.firstChild) }
+     for(let clientObject of arrScoreInfo)
+     {
+        const l = document.createElement("label");
+        l.textContent = clientObject.clientId + " Score is " +clientObject.score;
+        l.style.color="white";
+        l.style.margin="10px"
+        v.appendChild(l);
+     }
+ }
     </script>
 </body>
 
