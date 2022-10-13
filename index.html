@@ -33,6 +33,7 @@
     <div id='players' style="margin-top: 10px;margin-bottom: 10px"></div>
     <div id="scorelabel" style="margin-top: 10px;margin-bottom: 10px"></div>
     <label id="timerlabel" style="margin-top: 10px;margin-bottom: 10px"></label>
+    <label id="terminategameinfo" style="margin-top: 10px;margin-bottom: 10px;color: wheat;"></label>
     <div id='board'style="margin: top 10px"></div>
     
 
@@ -125,7 +126,16 @@
             }
 
             
-
+            if(receivedfromserver.method ==="TerminateGame")
+            {
+                
+                var message=""
+                const clientInfo =receivedfromserver.clientInfo;
+                if(clientInfo[0].score>clientInfo[1].score)
+                { message=clientInfo[0].clientId + "Won the game !!" }
+                else { message=clientInfo[ 1 ].clientId + "Won the game !!" }
+                alert(message);
+            }
 
 
             if (receivedfromserver.method === "patternupdate") {

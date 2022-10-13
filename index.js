@@ -208,6 +208,23 @@ function SetTimer() {
     var second = 20;
     var interval = setInterval(function () {
         if (second == 0) {
+
+            var clientInfo = GetScore();
+             
+            for (const g of Object.keys(games)) {
+
+                const game = games[g]
+                const sendtoclient={
+                    "method":"TerminateGame",
+                     "clientInfo":clientInfo
+                }
+    
+                game.clientdict.forEach(c => {
+                    clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
+                    
+                })
+            }
+            
             clearInterval(interval)
         }
 
@@ -222,7 +239,7 @@ function SetTimer() {
 
             game.clientdict.forEach(c => {
                 clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
-                sendtoclient.isReverse = !sendtoclient.isReverse;
+                
             })
         }
 
