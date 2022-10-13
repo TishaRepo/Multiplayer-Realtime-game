@@ -10,6 +10,7 @@ const httpServer = http.createServer();
 httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
 const clientdict = {};
+var isGameRunning = false;
 const games = {};
 var currentPattern = {
     patternNo: 0,
@@ -54,6 +55,7 @@ wsServer.on("request", request => {
         //player has sent start request
         if (receivedfromclient.method === "start") {
             const gid = receivedfromclient.gameIdGlobal;
+            isGameRunning=true;
             const game = games[gid];
             if (game.clientdict.length < 2) {
                 const send = {
@@ -152,7 +154,7 @@ wsServer.on("request", request => {
 function updateClientPattern(p_arrPattern, removeId) {
 
     var clientInfo = GetScore();
-
+    if(isGameRunning===false){return;}
     for (const g of Object.keys(games)) {
 
         const game = games[g]
@@ -162,7 +164,8 @@ function updateClientPattern(p_arrPattern, removeId) {
             "pattern": p_arrPattern,
             "removeId": removeId,
             "isReverse": true,
-            "ScoreInfo": clientInfo
+            "ScoreInfo": clientInfo,
+            
 
 
         }
@@ -208,7 +211,7 @@ function SetTimer() {
     var second = 20;
     var interval = setInterval(function () {
         if (second == 0) {
-
+            isGameRunning=false;
             var clientInfo = GetScore();
              
             for (const g of Object.keys(games)) {

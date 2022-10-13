@@ -180,7 +180,7 @@
 
             if (receivedfromserver.method === "join") {
                 const game = receivedfromserver.game;
-                var rule =" ASCENDING ";
+                var rule =" DESCENDING ";
                 while (players.firstChild)
                     players.removeChild(players.firstChild)
 
@@ -194,7 +194,7 @@
                     d.style.margin = "10px";
                     d.style.padding= "10px";
                     players.appendChild(d);
-                     rule=" DESCENDING "
+                     rule=" ASCENDING "
 
                 })
 
