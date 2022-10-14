@@ -80,7 +80,7 @@
                 "method": "join",
                 "cid": cid,
                 "gameid": gameid,
-                "playerName":name
+                "playerName":name +" "
             }
 
             ws.send(JSON.stringify(sendtoserver));
@@ -132,8 +132,8 @@
                 var message=""
                 const clientInfo =receivedfromserver.clientInfo;
                 if(clientInfo[0].score>clientInfo[1].score)
-                { message=clientInfo[0].clientId + "Won the game !!" }
-                else { message=clientInfo[ 1 ].clientId + "Won the game !!" }
+                { message=clientInfo[0].clientId + " Won the game !!" }
+                else { message=clientInfo[ 1 ].clientId + " Won the game !!" }
                 alert(message);
             }
 
@@ -190,7 +190,7 @@
                     d.style.width = "300px";
                     d.style.height ="40px";
                     d.style.background = c.color;
-                    d.textContent = c.name +" ,  RULE : Press Buttons in " + rule +" order " ;
+                    d.textContent = c.name + " , Id :" + c.cid +" ,  RULE : Press Buttons in " + rule +" order " ;
                     d.style.margin = "10px";
                     d.style.padding= "10px";
                     players.appendChild(d);
@@ -278,8 +278,8 @@
  function CreateLabel(arrScoreInfo)
  {  const v =document.getElementById("scorelabel");
 
-                while (v.firstChild)
-                   { v.removeChild(v.firstChild) }
+     while (v.firstChild)
+     { v.removeChild(v.firstChild) }
      for(let clientObject of arrScoreInfo)
      {
         const l = document.createElement("label");

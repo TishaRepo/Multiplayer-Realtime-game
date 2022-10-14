@@ -11,6 +11,7 @@ httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
 const clientdict = {};
 var isGameRunning = false;
+ var nameGlobal = "";
 const games = {};
 var currentPattern = {
     patternNo: 0,
@@ -79,6 +80,7 @@ wsServer.on("request", request => {
         if (receivedfromclient.method === "join") {
 
             var name = receivedfromclient.playerName;
+            nameGlobal =name + " ";
             const cid = receivedfromclient.cid;
             const gameid = receivedfromclient.gameid;
             const game = games[gameid];
@@ -140,6 +142,7 @@ wsServer.on("request", request => {
     clientdict[cid] = {
         "connection": connection,
         "score": 0,
+        
 
     }
 
@@ -168,8 +171,6 @@ function updateClientPattern(p_arrPattern, removeId) {
             "isReverse": true,
             "ScoreInfo": clientInfo,
 
-
-
         }
 
         game.clientdict.forEach(c => {
@@ -186,6 +187,8 @@ function GetScore() {
 
         objClient["clientId"] = key;
         objClient["score"] = clientdict[key].score;
+        
+
 
         arrClientInfo.push(objClient);
     }
