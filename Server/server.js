@@ -19,6 +19,8 @@ const websocketServer = require("websocket").server
 const httpServer = http.createServer();
 httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
+const GetPattern =require('./GetPattern');
+
 const clientdict = {};
 var isGameRunning = false;
  var nameGlobal = "";
@@ -79,7 +81,7 @@ wsServer.on("request", request =>
                 })
                 return;
             }
-            const pattern = GetPattern();
+            const pattern = GetPattern(currentPattern);
             currentPattern.pattern = pattern;
             updateClientPattern(pattern, -1);
             SetTimer();
@@ -137,7 +139,7 @@ wsServer.on("request", request =>
 
 
                 currentPattern.patternNo = currentPattern.patternNo + 1;
-                TempCurrentPattern = GetPattern();
+                TempCurrentPattern = GetPattern(currentPattern);
                 currentPattern.pattern = TempCurrentPattern;
                 if (TempCurrentPattern.includes(buttonNumber)) {
                     buttonNumber = -1;
@@ -208,20 +210,7 @@ function GetScore() {
     return arrClientInfo;
 }
 
-function GetPattern() {
-    if (currentPattern.patternNo < 0 || currentPattern.patternNo > 4) {
-        currentPattern.patternNo = 0;
 
-    }
-    let PatternObject = {
-        0: [7, 4, 9],
-        1: [4, 7, 3],
-        2: [2, 15, 18],
-        3: [17, 14, 19],
-        4: [12, 8, 6]
-    }
-    return PatternObject[currentPattern.patternNo];
-}
 
 function SetTimer() {
     var second = 20;
