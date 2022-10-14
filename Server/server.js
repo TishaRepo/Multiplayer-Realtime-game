@@ -21,7 +21,7 @@ httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
 const GetPattern =require('./GetPattern');
 const GetScore =require('./GetScore');
-
+const SetTimer =require('./SetTimer');
 
 const clientdict = {};
 var isGameRunning = false;
@@ -86,7 +86,7 @@ wsServer.on("request", request =>
             const pattern = GetPattern(currentPattern);
             currentPattern.pattern = pattern;
             updateClientPattern(pattern, -1);
-            SetTimer();
+            SetTimer(isGameRunning,games,clientdict);
         }
 
 
@@ -194,53 +194,6 @@ function updateClientPattern(p_arrPattern, removeId) {
         })
     }
 }
-
-
-function SetTimer() {
-    var second = 20;
-    var interval = setInterval(function () {
-        if (second == 0) {
-            isGameRunning = false;
-            var clientInfo = GetScore(clientdict);
-
-            for (const g of Object.keys(games)) {
-
-                const game = games[g]
-                const sendtoclient = {
-                    "method": "TerminateGame",
-                    "clientInfo": clientInfo
-                }
-
-                game.clientdict.forEach(c => {
-                    clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
-
-                })
-            }
-
-            clearInterval(interval)
-        }
-
-
-        for (const g of Object.keys(games)) {
-
-            const game = games[g]
-            const sendtoclient = {
-                "method": "updateTimer",
-                "second": second
-            }
-
-            game.clientdict.forEach(c => {
-                clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
-
-            })
-        }
-
-        second = second - 1;
-
-    }, 1000);
-}
-
-
 
 
 const genid = () => Math.floor(Math.random() * 900000 + 100000);
