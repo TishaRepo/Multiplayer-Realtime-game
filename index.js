@@ -55,7 +55,7 @@ wsServer.on("request", request => {
         //player has sent start request
         if (receivedfromclient.method === "start") {
             const gid = receivedfromclient.gameIdGlobal;
-            isGameRunning=true;
+            isGameRunning = true;
             const game = games[gid];
             if (game.clientdict.length < 2) {
                 const send = {
@@ -154,7 +154,9 @@ wsServer.on("request", request => {
 function updateClientPattern(p_arrPattern, removeId) {
 
     var clientInfo = GetScore();
-    if(isGameRunning===false){return;}
+    if (isGameRunning === false) {
+        return;
+    }
     for (const g of Object.keys(games)) {
 
         const game = games[g]
@@ -165,7 +167,7 @@ function updateClientPattern(p_arrPattern, removeId) {
             "removeId": removeId,
             "isReverse": true,
             "ScoreInfo": clientInfo,
-            
+
 
 
         }
@@ -211,23 +213,23 @@ function SetTimer() {
     var second = 20;
     var interval = setInterval(function () {
         if (second == 0) {
-            isGameRunning=false;
+            isGameRunning = false;
             var clientInfo = GetScore();
-             
+
             for (const g of Object.keys(games)) {
 
                 const game = games[g]
-                const sendtoclient={
-                    "method":"TerminateGame",
-                     "clientInfo":clientInfo
+                const sendtoclient = {
+                    "method": "TerminateGame",
+                    "clientInfo": clientInfo
                 }
-    
+
                 game.clientdict.forEach(c => {
                     clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
-                    
+
                 })
             }
-            
+
             clearInterval(interval)
         }
 
@@ -236,13 +238,13 @@ function SetTimer() {
 
             const game = games[g]
             const sendtoclient = {
-                "method":"updateTimer",
+                "method": "updateTimer",
                 "second": second
             }
 
             game.clientdict.forEach(c => {
                 clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
-                
+
             })
         }
 
