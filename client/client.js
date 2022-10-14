@@ -157,6 +157,7 @@ ws.onmessage = message => {
             d.textContent = c.name + " , Id :" + c.cid + " ,  RULE : Press Buttons in " + rule + " order ";
             d.style.margin = "10px";
             d.style.padding = "10px";
+            d.style.float= "right";
             players.appendChild(d);
             rule = " ASCENDING "
 

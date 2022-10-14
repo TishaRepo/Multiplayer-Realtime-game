@@ -107,8 +107,8 @@ wsServer.on("request", request =>
             }
 
             const color = {
-                "0": "Red",
-                "1": "Green"
+                "0": "pink",
+                "1": "MediumSeaGreen"
             } [game.clientdict.length]
             game.clientdict.push({
                 "cid": cid,
