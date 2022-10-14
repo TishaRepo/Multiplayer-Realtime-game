@@ -20,6 +20,8 @@ const httpServer = http.createServer();
 httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
 const GetPattern =require('./GetPattern');
+const GetScore =require('./GetScore');
+
 
 const clientdict = {};
 var isGameRunning = false;
@@ -150,7 +152,7 @@ wsServer.on("request", request =>
 
     })
 
-    const cid = genid();
+    const cid =genid();
 
     clientdict[cid] = {
         "connection": connection,
@@ -169,7 +171,7 @@ wsServer.on("request", request =>
 
 function updateClientPattern(p_arrPattern, removeId) {
 
-    var clientInfo = GetScore();
+    var clientInfo = GetScore(clientdict);
     if (isGameRunning === false) {
         return;
     }
@@ -193,31 +195,13 @@ function updateClientPattern(p_arrPattern, removeId) {
     }
 }
 
-function GetScore() {
-    var arrClientInfo = [];
-    for (const key in clientdict) {
-        let objClient = {}
-
-        objClient["clientId"] = key;
-        objClient["score"] = clientdict[key].score;
-        
-
-
-        arrClientInfo.push(objClient);
-    }
-
-
-    return arrClientInfo;
-}
-
-
 
 function SetTimer() {
     var second = 20;
     var interval = setInterval(function () {
         if (second == 0) {
             isGameRunning = false;
-            var clientInfo = GetScore();
+            var clientInfo = GetScore(clientdict);
 
             for (const g of Object.keys(games)) {
 
