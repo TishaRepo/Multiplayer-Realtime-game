@@ -8,6 +8,7 @@ var express = require('express'),
     
 app.use(express.static(path.join(__dirname, '../client')));
 
+
 app.get('/', function(req, res) {
     res.redirect('index.html');
 });
@@ -19,9 +20,11 @@ const websocketServer = require("websocket").server
 const httpServer = http.createServer();
 httpServer.listen(9090, () => console.log("Listening.. on 9090"))
 
-const GetPattern =require('./GetPattern');
+
 const GetScore =require('./GetScore');
 const SetTimer =require('./SetTimer');
+const library = require('../client/library');
+
 
 const clientdict = {};
 var isGameRunning = false;
@@ -36,13 +39,37 @@ var currentPattern = {
 const wsServer = new websocketServer({
     "httpServer": httpServer
 })
+
+
 wsServer.on("request", request =>
- {
+ {  let count =0;
+    for(let key in clientdict)
+    {  
+        count++;
+    }
+    if(count>=2){return;}
     const connection = request.accept(null, request.origin);
+
+    const cid =library.genid();
+
+    clientdict[cid] = {
+        "connection": connection,
+        "score": 0,
+        
+    }
+
+    const response = {
+        "method": "connect",
+        "cid": cid
+    }
+    
+    connection.send(library.encodeObject(response))
     connection.on("open", () => console.log("opened!"))
     connection.on("closed", () => console.log("closed!"))
+
+    
     connection.on("message", message => {
-        const receivedfromclient = JSON.parse(message.utf8Data)
+        const receivedfromclient = library.parseObject(message.utf8Data)
         console.log(receivedfromclient)
 
 
@@ -51,11 +78,11 @@ wsServer.on("request", request =>
         if (receivedfromclient.method === "create") {
             const cid = receivedfromclient.cid;
 
-            const gameid = genid();
+            const gameid = library.genid();
             games[gameid] = {
                 "id": gameid,
                 "balls": 20,
-                "clientdict": []
+                "clientdict": [  ]
             }
 
             const send = {
@@ -64,7 +91,7 @@ wsServer.on("request", request =>
             }
 
             const con = clientdict[cid].connection;
-            con.send(JSON.stringify(send));
+            con.send(library.encodeObject(send));
         }
 
 
@@ -79,11 +106,11 @@ wsServer.on("request", request =>
                 }
 
                 game.clientdict.forEach(c => {
-                    clientdict[c.cid].connection.send(JSON.stringify(send))
+                    clientdict[c.cid].connection.send(library.encodeObject(send))
                 })
                 return;
             }
-            const pattern = GetPattern(currentPattern);
+            const pattern = library.GetPattern(currentPattern);
             currentPattern.pattern = pattern;
             updateClientPattern(pattern, -1);
             SetTimer(isGameRunning,games,clientdict);
@@ -100,11 +127,11 @@ wsServer.on("request", request =>
             const gameid = receivedfromclient.gameid;
             const game = games[gameid];
 
-            if (game.clientdict.length > 2) {
+            // if (game.clientdict.length >= 2) {
 
 
-                return;
-            }
+            //     return;
+            // }
 
             const color = {
                 "0": "pink",
@@ -124,7 +151,7 @@ wsServer.on("request", request =>
             }
 
             game.clientdict.forEach(c => {
-                clientdict[c.cid].connection.send(JSON.stringify(send))
+                clientdict[c.cid].connection.send(library.encodeObject(send))
             })
         }
 
@@ -141,7 +168,7 @@ wsServer.on("request", request =>
 
 
                 currentPattern.patternNo = currentPattern.patternNo + 1;
-                TempCurrentPattern = GetPattern(currentPattern);
+                TempCurrentPattern = library.GetPattern(currentPattern);
                 currentPattern.pattern = TempCurrentPattern;
                 if (TempCurrentPattern.includes(buttonNumber)) {
                     buttonNumber = -1;
@@ -150,22 +177,9 @@ wsServer.on("request", request =>
             updateClientPattern(TempCurrentPattern, buttonNumber);
         }
 
-    })
+    }) //this message is for message received from clients
 
-    const cid =genid();
-
-    clientdict[cid] = {
-        "connection": connection,
-        "score": 0,
-        
-
-    }
-
-    const response = {
-        "method": "connect",
-        "cid": cid
-    }
-    connection.send(JSON.stringify(response))
+    
 
 })
 
@@ -189,11 +203,10 @@ function updateClientPattern(p_arrPattern, removeId) {
         }
 
         game.clientdict.forEach(c => {
-            clientdict[c.cid].connection.send(JSON.stringify(sendtoclient));
+            clientdict[c.cid].connection.send(library.encodeObject(sendtoclient));
             sendtoclient.isReverse = !sendtoclient.isReverse;
         })
     }
 }
 
 
-const genid = () => Math.floor(Math.random() * 900000 + 100000);

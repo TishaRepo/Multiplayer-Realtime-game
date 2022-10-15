@@ -14,26 +14,35 @@ const board = document.getElementById("board");
 var patternFromServer = [];
 var isReverse = true;
 let gameIdGlobal = 0;
+var isJoined = false;
+var isStarted = false;
+
+
+
+
+
 
 
 //start the game
 
 startgame.addEventListener("click", e => {
 
-
-    {
+   
+    if(isStarted === true) {return;}
+    
         const sendtoserver = {
             "method": "start",
             "gameIdGlobal": gameIdGlobal
         }
-        ws.send(JSON.stringify(sendtoserver));
-    }
+        ws.send(encodeObject(sendtoserver));
+    
 })
 
 
 // i wanna join the game
 
 joinbutton.addEventListener("click", e => {
+    if(isJoined === true) {return;}
     var name = document.getElementById("name").value;
     if (gameid === null)
         gameid = t1.value;
@@ -45,20 +54,20 @@ joinbutton.addEventListener("click", e => {
         "playerName": name + " "
     }
 
-    ws.send(JSON.stringify(sendtoserver));
+    ws.send(encodeObject(sendtoserver));
 
 })
 
 
 // i wanna create the game
 createbutton.addEventListener("click", e => {
-
+    if(isJoined === true) {return;}
     const sendtoserver = {
         "method": "create",
         "cid": cid
     }
 
-    ws.send(JSON.stringify(sendtoserver))
+    ws.send(encodeObject(sendtoserver))
 })
 let cid = null;
 let gameid = null;
@@ -68,7 +77,7 @@ let gameid = null;
 
 // responses sent by server
 ws.onmessage = message => {
-    const receivedfromserver = JSON.parse(message.data);
+    const receivedfromserver = parseObject(message.data);
 
 
 
@@ -105,7 +114,8 @@ ws.onmessage = message => {
 
 
     if (receivedfromserver.method === "patternupdate") {
-
+        isStarted =true;
+        
 
         const ScoreInfo = receivedfromserver.ScoreInfo;
 
@@ -143,6 +153,7 @@ ws.onmessage = message => {
     }
 
     if (receivedfromserver.method === "join") {
+         isJoined= true;
         const game = receivedfromserver.game;
         var rule = " DESCENDING ";
         while (players.firstChild)
@@ -152,9 +163,9 @@ ws.onmessage = message => {
 
             const d = document.createElement("div");
             d.style.width = "300px";
-            d.style.height = "40px";
+            d.style.height = "67px";
             d.style.background = c.color;
-            d.textContent = c.name + " , Id :" + c.cid + " ,  RULE : Press Buttons in " + rule + " order ";
+            d.innerHTML = c.name + " , <br> Id :" + c.cid + " , <br>  RULE : Press Buttons in " + rule + " order ";
             d.style.margin = "10px";
             d.style.padding = "10px";
             d.style.float= "right";
@@ -216,7 +227,7 @@ ws.onmessage = message => {
 
 
                 }
-                ws.send(JSON.stringify(send))
+                ws.send(encodeObject(send))
             })
             board.appendChild(b);
         }
